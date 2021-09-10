@@ -2,7 +2,6 @@
 
 set -euo pipefail
 
-# TODO: Ensure this is the correct GitHub homepage where releases can be downloaded for podman.
 GH_REPO="https://github.com/containers/podman"
 TOOL_NAME="podman"
 TOOL_TEST="podman --help"
@@ -12,6 +11,7 @@ fail() {
   exit 1
 }
 
+platform=${OSTYPE//[0-9.]/}
 curl_opts=(-fsSL)
 
 # NOTE: You might want to remove this if podman is not hosted on GitHub releases.
@@ -31,8 +31,6 @@ list_github_tags() {
 }
 
 list_all_versions() {
-  # TODO: Adapt this. By default we simply list the tag names from GitHub releases.
-  # Change this function if podman has other means of determining installable versions.
   list_github_tags
 }
 
@@ -41,8 +39,7 @@ download_release() {
   version="$1"
   filename="$2"
 
-  # TODO: Adapt the release URL convention for podman
-  url="$GH_REPO/archive/v${version}.tar.gz"
+  url="$GH_REPO/releases/download/v${version}/podman-remote-release-${platform}.zip"
 
   echo "* Downloading $TOOL_NAME release $version..."
   curl "${curl_opts[@]}" -o "$filename" -C - "$url" || fail "Could not download $url"
@@ -52,16 +49,20 @@ install_version() {
   local install_type="$1"
   local version="$2"
   local install_path="$3"
+  local manpath="$install_path"/share/man
+  local binpath="$install_path"/bin
 
   if [ "$install_type" != "version" ]; then
     fail "asdf-$TOOL_NAME supports release installs only"
   fi
 
   (
-    mkdir -p "$install_path"
-    cp -r "$ASDF_DOWNLOAD_PATH"/* "$install_path"
+    mkdir -p "$install_path/bin"
+    cp -r "$ASDF_DOWNLOAD_PATH"/podman "$binpath"
 
-    # TODO: Asert podman executable exists.
+    mkdir -p "$manpath"
+    cp -r "$ASDF_DOWNLOAD_PATH"/docs/*.1 "$manpath"/man1
+
     local tool_cmd
     tool_cmd="$(echo "$TOOL_TEST" | cut -d' ' -f1)"
     test -x "$install_path/bin/$tool_cmd" || fail "Expected $install_path/bin/$tool_cmd to be executable."
