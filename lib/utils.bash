@@ -39,7 +39,18 @@ download_release() {
   version="$1"
   filename="$2"
 
-  url="$GH_REPO/releases/download/v${version}/podman-remote-release-${platform}.zip"
+  case $platform in
+    darwin)
+      url="$GH_REPO/releases/download/v${version}/podman-remote-release-${platform}.zip"
+      ;;
+    linux)
+      url="$GH_REPO/releases/download/v${version}/podman-remote-static.tar.gz"
+      ;;
+    *)
+      echo "Unknown platform: ${platform}"
+      exit 1
+      ;;
+  esac
 
   echo "* Downloading $TOOL_NAME release $version..."
   curl "${curl_opts[@]}" -o "$filename" -C - "$url" || fail "Could not download $url"
@@ -56,20 +67,30 @@ install_version() {
     fail "asdf-$TOOL_NAME supports release installs only"
   fi
 
-  (
-    mkdir -p "$install_path/bin"
-    cp -r "$ASDF_DOWNLOAD_PATH"/podman "$binpath"
+  if [ "$platform" == "darwin" ]; then
+    (
+      mkdir -p "$install_path/bin"
+      cp -r "$ASDF_DOWNLOAD_PATH"/podman "$binpath"
 
-    mkdir -p "$manpath"
-    cp -r "$ASDF_DOWNLOAD_PATH"/docs/*.1 "$manpath"/man1
+      mkdir -p "$manpath"
+      cp -r "$ASDF_DOWNLOAD_PATH"/docs/*.1 "$manpath"/man1
 
-    local tool_cmd
-    tool_cmd="$(echo "$TOOL_TEST" | cut -d' ' -f1)"
-    test -x "$install_path/bin/$tool_cmd" || fail "Expected $install_path/bin/$tool_cmd to be executable."
+      local tool_cmd
+      tool_cmd="$(echo "$TOOL_TEST" | cut -d' ' -f1)"
+      test -x "$install_path/bin/$tool_cmd" || fail "Expected $install_path/bin/$tool_cmd to be executable."
 
-    echo "$TOOL_NAME $version installation was successful!"
-  ) || (
-    rm -rf "$install_path"
-    fail "An error ocurred while installing $TOOL_NAME $version."
-  )
+      echo "$TOOL_NAME $version installation was successful!"
+    ) || (
+      rm -rf "$install_path"
+      fail "An error ocurred while installing $TOOL_NAME $version."
+    )
+  elif [ "$platform" == "darwin" ]; then
+    (
+      mkdir -p "$install_path/bin"
+      cp -r "$ASDF_DOWNLOAD_PATH"/podman-remote-static "$binpath"/podman
+    ) || (
+      rm -rf "$install_path"
+      fail "An error ocurred while installing $TOOL_NAME $version."
+    )
+  fi
 }
