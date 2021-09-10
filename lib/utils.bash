@@ -72,7 +72,7 @@ install_version() {
       mkdir -p "$install_path/bin"
       cp -r "$ASDF_DOWNLOAD_PATH"/podman "$binpath"
 
-      mkdir -p "$manpath"
+      mkdir -p "$manpath"/man1
       cp -r "$ASDF_DOWNLOAD_PATH"/docs/*.1 "$manpath"/man1
 
       local tool_cmd
@@ -92,5 +92,7 @@ install_version() {
       rm -rf "$install_path"
       fail "An error ocurred while installing $TOOL_NAME $version."
     )
+  else
+    fail "Unknown platform: ${platform}"
   fi
 }
