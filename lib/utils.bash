@@ -84,7 +84,7 @@ install_version() {
       rm -rf "$install_path"
       fail "An error ocurred while installing $TOOL_NAME $version."
     )
-  elif [ "$platform" == "darwin" ]; then
+  elif [ "$platform" == "linux" ]; then
     (
       mkdir -p "$install_path/bin"
       cp -r "$ASDF_DOWNLOAD_PATH"/podman-remote-static "$binpath"/podman
