@@ -40,16 +40,16 @@ download_release() {
   filename="$2"
 
   case $platform in
-    darwin)
-      url="$GH_REPO/releases/download/v${version}/podman-remote-release-${platform}.zip"
-      ;;
-    linux)
-      url="$GH_REPO/releases/download/v${version}/podman-remote-static.tar.gz"
-      ;;
-    *)
-      echo "Unknown platform: ${platform}"
-      exit 1
-      ;;
+  darwin)
+    url="$GH_REPO/releases/download/v${version}/podman-remote-release-${platform}.zip"
+    ;;
+  linux)
+    url="$GH_REPO/releases/download/v${version}/podman-remote-static.tar.gz"
+    ;;
+  *)
+    echo "Unknown platform: ${platform}"
+    exit 1
+    ;;
   esac
 
   echo "* Downloading $TOOL_NAME release $version..."
