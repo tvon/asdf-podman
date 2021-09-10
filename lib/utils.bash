@@ -11,7 +11,7 @@ fail() {
   exit 1
 }
 
-platform=${OSTYPE//[0-9.]/}
+platform=$(uname -s | awk '{print tolower($0)}')
 curl_opts=(-fsSL)
 
 # NOTE: You might want to remove this if podman is not hosted on GitHub releases.
