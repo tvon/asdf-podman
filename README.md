@@ -5,8 +5,6 @@
 
 [podman](https://docs.podman.io/en/latest/) plugin for the [asdf version manager](https://asdf-vm.com).
 
-> NOTE: Due to how containers/podman distributes releases, this does not currently work for Linux.
-
 </div>
 
 # Contents
