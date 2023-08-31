@@ -11,7 +11,29 @@ fail() {
   exit 1
 }
 
+# adapted from https://github.com/asdf-community/asdf-hashicorp/blob/master/bin/install
+get_arch() {
+  local -r machine="$(uname -m)"
+  local -r upper_toolname=$(echo "${TOOL_NAME//-/_}" | tr '[:lower:]' '[:upper:]')
+  local -r tool_specific_arch_override="ASDF_PODMAN_OVERWRITE_ARCH_${upper_toolname}"
+
+  OVERWRITE_ARCH=${!tool_specific_arch_override:-${ASDF_PODMAN_OVERWRITE_ARCH:-"false"}}
+
+  if [[ ${OVERWRITE_ARCH} != "false" ]]; then
+    echo "${OVERWRITE_ARCH}"
+  elif [[ ${machine} == "arm64" ]] || [[ ${machine} == "aarch64" ]]; then
+    echo "arm64"
+  elif [[ ${machine} == *"arm"* ]] || [[ ${machine} == *"aarch"* ]]; then
+    echo "arm"
+  elif [[ ${machine} == *"386"* ]]; then
+    echo "386"
+  else
+    echo "amd64"
+  fi
+}
+
 platform=$(uname -s | awk '{print tolower($0)}')
+arch="$(get_arch)"
 curl_opts=(-fsSL)
 
 # NOTE: You might want to remove this if podman is not hosted on GitHub releases.
@@ -41,10 +63,10 @@ download_release() {
 
   case $platform in
   darwin)
-    url="$GH_REPO/releases/download/v${version}/podman-remote-release-${platform}.zip"
+    url="$GH_REPO/releases/download/v${version}/podman-remote-release-${platform}_${arch}.zip"
     ;;
   linux)
-    url="$GH_REPO/releases/download/v${version}/podman-remote-static.tar.gz"
+    url="$GH_REPO/releases/download/v${version}/podman-remote-static-linux_${arch}.tar.gz"
     ;;
   *)
     echo "Unknown platform: ${platform}"
@@ -70,7 +92,7 @@ install_version() {
   if [ "$platform" == "darwin" ]; then
     (
       mkdir -p "$install_path/bin"
-      cp -r "$ASDF_DOWNLOAD_PATH"/podman "$binpath"
+      cp -r "$ASDF_DOWNLOAD_PATH"/usr/bin/podman "$binpath"
 
       mkdir -p "$manpath"/man1
       cp -r "$ASDF_DOWNLOAD_PATH"/docs/*.1 "$manpath"/man1
@@ -87,7 +109,7 @@ install_version() {
   elif [ "$platform" == "linux" ]; then
     (
       mkdir -p "$install_path/bin"
-      cp -r "$ASDF_DOWNLOAD_PATH"/podman-remote-static "$binpath"/podman
+      cp -r "$ASDF_DOWNLOAD_PATH"/podman-remote-static-linux_"${arch}" "$binpath"/podman
     ) || (
       rm -rf "$install_path"
       fail "An error ocurred while installing $TOOL_NAME $version."
